@@ -7,13 +7,50 @@ import { ColabLink } from '/snippets/en/_includes/colab-link.mdx';
 
 Use [W&B](https://wandb.ai) for machine learning experiment tracking, dataset versioning, and project collaboration.
 
+
 <Frame>
     <img src="/images/tutorials/huggingface-why.png" alt="Benefits of using W&B"  />
 </Frame>
 
-## What this notebook covers
+This tutorial demonstrates how to integrate Weights & Biases with a PyTorch training pipeline to track experiments.
 
-We show you how to integrate W&B with your PyTorch code to add experiment tracking to your pipeline.
+## Install, import, and log in
+
+```python
+import os
+import random
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+from tqdm.auto import tqdm
+
+# Ensure deterministic behavior
+torch.backends.cudnn.deterministic = True
+random.seed(hash("setting random seeds") % 2**32 - 1)
+np.random.seed(hash("improves reproducibility") % 2**32 - 1)
+torch.manual_seed(hash("by removing stochasticity") % 2**32 - 1)
+torch.cuda.manual_seed_all(hash("so runs are repeatable") % 2**32 - 1)
+
+# Device configuration
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# remove slow mirror from list of MNIST mirrors
+torchvision.datasets.MNIST.mirrors = [mirror for mirror in torchvision.datasets.MNIST.mirrors
+                                      if not mirror.startswith("http://yann.lecun.com")]
+```
+
+### Step 0: Install W&B
+
+To get started, we'll need to get the library.
+`wandb` is easily installed using `pip`.
+
+
+```python
+!pip install wandb onnx -Uq
+```
 
 <Frame>
     <img src="/images/tutorials/pytorch.png" alt="PyTorch and W&B integration diagram"  />
