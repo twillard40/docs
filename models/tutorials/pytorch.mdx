@@ -51,81 +51,7 @@ To get started, we'll need to get the library.
 ```python
 !pip install wandb onnx -Uq
 ```
-
-<Frame>
-    <img src="/images/tutorials/pytorch.png" alt="PyTorch and W&B integration diagram"  />
-</Frame>
-
-```python
-# import the library
-import wandb
-
-# start a new experiment
-with wandb.init(project="new-sota-model") as run:
- 
-    # capture a dictionary of hyperparameters with config
-    run.config = {"learning_rate": 0.001, "epochs": 100, "batch_size": 128}
-
-    # set up model and data
-    model, dataloader = get_model(), get_data()
-
-    # optional: track gradients
-    run.watch(model)
-
-    for batch in dataloader:
-    metrics = model.training_step()
-    # log metrics inside your training loop to visualize model performance
-    run.log(metrics)
-
-    # optional: save model at the end
-    model.to_onnx()
-    run.save("model.onnx")
-```
-
-Follow along with a [video tutorial](https://wandb.me/pytorch-video).
-
-**Note**: Sections starting with _Step_ are all you need to integrate W&B in an existing pipeline. The rest just loads data and defines a model.
-
-## Install, import, and log in
-
-
-```python
-import os
-import random
-
-import numpy as np
-import torch
-import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
-from tqdm.auto import tqdm
-
-# Ensure deterministic behavior
-torch.backends.cudnn.deterministic = True
-random.seed(hash("setting random seeds") % 2**32 - 1)
-np.random.seed(hash("improves reproducibility") % 2**32 - 1)
-torch.manual_seed(hash("by removing stochasticity") % 2**32 - 1)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % 2**32 - 1)
-
-# Device configuration
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-# remove slow mirror from list of MNIST mirrors
-torchvision.datasets.MNIST.mirrors = [mirror for mirror in torchvision.datasets.MNIST.mirrors
-                                      if not mirror.startswith("http://yann.lecun.com")]
-```
-
-### Step 0: Install W&B
-
-To get started, we'll need to get the library.
-`wandb` is easily installed using `pip`.
-
-
-```python
-!pip install wandb onnx -Uq
-```
-
-### Step 1: Import W&B and Login
+### Step 1: Import W&B and log in
 
 In order to log data to our web service,
 you'll need to log in.
@@ -463,8 +389,9 @@ we'll also print a summary of the results in the cell output.
 # Build, train and analyze the model with the pipeline
 model = model_pipeline(config)
 ```
+## (Optional) Next steps
 
-### Test Hyperparameters with Sweeps
+### Test hyperparameters with sweeps
 
 We only looked at a single set of hyperparameters in this example.
 But an important part of most ML workflows is iterating over
@@ -490,6 +417,41 @@ That's all there is to running a hyperparameter sweep.
     <img src="/images/tutorials/pytorch-2.png" alt="PyTorch training dashboard"  />
 </Frame>
 
+## Minimal integration example
+
+<Frame>
+    <img src="/images/tutorials/pytorch.png" alt="PyTorch and W&B integration diagram"  />
+</Frame>
+
+```python
+# import the library
+import wandb
+
+# start a new experiment
+with wandb.init(project="new-sota-model") as run:
+ 
+    # capture a dictionary of hyperparameters with config
+    run.config = {"learning_rate": 0.001, "epochs": 100, "batch_size": 128}
+
+    # set up model and data
+    model, dataloader = get_model(), get_data()
+
+    # optional: track gradients
+    run.watch(model)
+
+    for batch in dataloader:
+    metrics = model.training_step()
+    # log metrics inside your training loop to visualize model performance
+    run.log(metrics)
+
+    # optional: save model at the end
+    model.to_onnx()
+    run.save("model.onnx")
+```
+
+Follow along with a [video tutorial](https://wandb.me/pytorch-video).
+
+**Note**: Sections starting with _Step_ are all you need to integrate W&B in an existing pipeline. The rest just loads data and defines a model.
 
 ## Example Gallery
 
