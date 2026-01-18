@@ -16,7 +16,7 @@ This tutorial demonstrates how to integrate Weights & Biases with a PyTorch trai
 
 ## Install, import, and log in
 
-This section sets up the Python environment for the tutorial, including imports, reproducibility settings, and device configuration.
+Set up your Python environment with required imports, reproducibility settings, and device configuration.
 
 ```python
 import os
@@ -44,7 +44,7 @@ torchvision.datasets.MNIST.mirrors = [mirror for mirror in torchvision.datasets.
                                       if not mirror.startswith("http://yann.lecun.com")]
 ```
 
-### Install and log in to W&B
+### Install W&B library and log in
 
 1. Install the W&B library using `pip`.
 
@@ -322,65 +322,81 @@ model = model_pipeline(config)
 
 ### Test hyperparameters with sweeps
 
-We only looked at a single set of hyperparameters in this example.
-But an important part of most ML workflows is iterating over
-a number of hyperparameters.
+This tutorial uses a single set of hyperparameters. In practice, most machine learning workflows involve testing multiple configurations to find better-performing models.
 
-You can use W&B Sweeps to automate hyperparameter testing and explore the space of possible models and optimization strategies.
+W&B Sweeps lets you automate hyperparameter searches and compare results across runs. You define the parameters to explore, choose a search strategy, and let W&B manage the experiments.
 
-Check out a [Colab notebook demonstrating hyperparameter optimization using W&B Sweeps](https://wandb.me/sweeps-colab).
+To run a sweep:
+1. Define the sweep configuration
+Specify the hyperparameters to search, the optimization strategy, and the metric to optimize. You can define this in a Python dictionary or a YAML file.
+2. Initialize the sweep
+```python
+sweep_id = wandb.sweep(sweep_config)
+```
+3. Run the sweep agent
+```python
+wandb.agent(sweep_id, function=train)
+```
+Each sweep run is tracked automatically, making it easy to compare metrics and identify the best-performing configuration.
 
-Running a hyperparameter sweep with W&B is very easy. There are just 3 simple steps:
-
-1. **Define the sweep:** We do this by creating a dictionary or a [YAML file](/models/sweeps/define-sweep-configuration/) that specifies the parameters to search through, the search strategy, the optimization metric et all.
-
-2. **Initialize the sweep:** 
-`sweep_id = wandb.sweep(sweep_config)`
-
-3. **Run the sweep agent:** 
-`wandb.agent(sweep_id, function=train)`
-
-That's all there is to running a hyperparameter sweep.
+For a complete example, see the [Colab notebook demonstrating hyperparameter optimization using W&B Sweeps](https://wandb.me/sweeps-colab).
 
 <Frame>
     <img src="/images/tutorials/pytorch-2.png" alt="PyTorch training dashboard"  />
 </Frame>
 
-## Minimal integration example
+## Quick start: minimal W&B integration
+
+This example shows the smallest set of changes required to track a PyTorch training run with Weights & Biases.
+
+Use this pattern if you already have a training loop and want to add experiment tracking with minimal refactoring.
+
+```python
+import wandb
+
+# Start a new run
+with wandb.init(project="new-sota-model") as run:
+    # Log hyperparameters
+    run.config = {
+        "learning_rate": 0.001,
+        "epochs": 100,
+        "batch_size": 128,
+    }
+
+    # Set up model and data
+    model, dataloader = get_model(), get_data()
+
+    # (Optional) Track gradients and parameters
+    run.watch(model)
+
+    # Training loop
+    for batch in dataloader:
+        metrics = model.training_step(batch)
+        run.log(metrics)
+
+    # (Optional) Save the trained model
+    model.to_onnx()
+    run.save("model.onnx")
+```
+#### What this does
+
+* Creates a tracked W&B run with wandb.init.
+
+* Logs hyperparameters for reproducibility and comparison.
+
+* Records training metrics during the loop with run.log.
+
+* Optionally tracks gradients with run.watch.
+
+* Optionally saves model artifacts with run.save.
+
+For a complete explanation of data loading, model definition, and training structure, see the full tutorial sections above.
+
+Follow along with a [video tutorial](https://wandb.me/pytorch-video).
 
 <Frame>
     <img src="/images/tutorials/pytorch.png" alt="PyTorch and W&B integration diagram"  />
 </Frame>
-
-```python
-# import the library
-import wandb
-
-# start a new experiment
-with wandb.init(project="new-sota-model") as run:
- 
-    # capture a dictionary of hyperparameters with config
-    run.config = {"learning_rate": 0.001, "epochs": 100, "batch_size": 128}
-
-    # set up model and data
-    model, dataloader = get_model(), get_data()
-
-    # optional: track gradients
-    run.watch(model)
-
-    for batch in dataloader:
-    metrics = model.training_step()
-    # log metrics inside your training loop to visualize model performance
-    run.log(metrics)
-
-    # optional: save model at the end
-    model.to_onnx()
-    run.save("model.onnx")
-```
-
-Follow along with a [video tutorial](https://wandb.me/pytorch-video).
-
-**Note**: Sections starting with _Step_ are all you need to integrate W&B in an existing pipeline. The rest just loads data and defines a model.
 
 ## Example Gallery
 
