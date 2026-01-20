@@ -16,7 +16,7 @@ This tutorial demonstrates how to integrate Weights & Biases with a PyTorch trai
 
 ## Install, import, and log in
 
-Set up your Python environment with required imports, reproducibility settings, and device configuration.
+Set up your Python environment with the required imports, reproducibility settings, and device configuration.
 
 ```python
 import os
@@ -44,9 +44,9 @@ torchvision.datasets.MNIST.mirrors = [mirror for mirror in torchvision.datasets.
                                       if not mirror.startswith("http://yann.lecun.com")]
 ```
 
-### Install W&B library and log in
+### Install the W&B library and log in
 
-1. Install the W&B library using `pip`.
+1. Install the W&B library with `pip`.
 
 ```python
 !pip install wandb onnx -Uq
@@ -63,7 +63,7 @@ wandb.login()
 
 ## Define the experiment configuration
 
-Define a configuration that contains the hyperparameters and metadata you want to track for each run, such as training settings, dataset choice, and model architecture. This configuration is logged with each run and simplifies the process of comparing results within the same project. 
+Define a configuration that contains the hyperparameters and metadata you want to track for each run, such as training settings, dataset choice, and model architecture. This configuration is logged with each run and makes it easier to compare results within the same project.
 
 In the example below, only a subset of values varies, but any part of your training setup can be included.
 
@@ -80,11 +80,11 @@ config = dict(
 
 ## Define the training pipeline
 
-Define the overall training pipeline. This pipeline follows a typical model-training workflow: 
+Define the overall training pipeline. It follows a typical model-training workflow:
 
 1. Create the model and data loaders. 
 2. Train the model. 
-3. Evaluate its performance.
+3. Evaluate model performance.
 
 ```python
 def model_pipeline(hyperparameters):
@@ -112,7 +112,7 @@ The helper functions referenced here are defined in the following sections.
 
 ## Define the model, data loaders, and optimizer
 
-Define the model, data loaders, and optimizer used by the training pipeline.
+Define the components used by the training pipeline.
 
 ```python
 def make(config):
@@ -134,7 +134,7 @@ def make(config):
 
 ### Define the data loading and model
 
-Define the data loading utilities and model architecture used by the training pipeline. These components are standard PyTorch implementations and are included here for completeness.
+Define the data loading utilities and model architecture used by the training pipeline. These are standard PyTorch implementations.
 
 ```python
 def get_data(slice=5, train=True):
@@ -255,6 +255,29 @@ In this example, metrics are logged to W&B instead of being printed to the termi
 
 If you log metrics by the number of examples processed, it becomes easier to compare runs with different batch sizes. Metrics can also be logged by batch or by epoch.
 
+### Run training and view metrics in W&B
+
+Run the training pipeline with W&B enabled to record metrics, system information, and saved files for the run.
+
+When the run starts, W&B prints links to:
+
+* The project page, which groups all runs for this experiment.
+* The run page, where metrics, logs, and files for this run are recorded.
+
+The run page includes the following tabs:
+
+1. Charts: View training metrics such as loss, gradients, and parameter values as they change over time.
+2. System: Monitor system metrics including CPU, GPU, memory usage, and disk I/O during training.
+3. Logs: View a record of anything written to standard output while the model runs.
+4. Files: Access files saved during the run. After training completes, you can open model.onnx in the Netron model viewer to inspect the network architecture.
+
+When training finishes and the wandb.init context exits, a summary of the run is also printed in the notebook output.
+
+```python
+# Build, train, and evaluate the model
+model = model_pipeline(config)
+```
+
 ### Define testing logic
 
 After training completes, evaluate the model on test data to measure performance. The model is run in evaluation mode and aggregate metrics, such as accuracy, are reported.
@@ -294,28 +317,6 @@ def test(model, test_loader):
         run.save("model.onnx")
 ```
 
-### Run training and view metrics in W&B
-
-Run the training pipeline with W&B enabled to record metrics, system information, and saved files for the run.
-
-When the run starts, W&B prints links to:
-
-* The project page, which groups all runs for this experiment.
-* The run page, where metrics, logs, and files for this run are recorded.
-
-The run page includes the following tabs:
-
-1. Charts: View training metrics such as loss, gradients, and parameter values as they change over time.
-2. System: Monitor system metrics including CPU, GPU, memory usage, and disk I/O during training.
-3. Logs: View a record of anything written to standard output while the model runs.
-4. Files: Access files saved during the run. After training completes, you can open model.onnx in the Netron model viewer to inspect the network architecture.
-
-When training finishes and the wandb.init context exits, a summary of the run is also printed in the notebook output.
-
-```python
-# Build, train, and evaluate the model
-model = model_pipeline(config)
-```
 ## (Optional) Next steps
 
 ### Test hyperparameters with sweeps
@@ -324,17 +325,21 @@ This example uses a single set of hyperparameters. In practice, most workflows e
 
 W&B Sweeps automates hyperparameter search by running the training code across different configurations and tracking results for comparison.
 
+ Specify the hyperparameters to search, the optimization strategy, and the metric to optimize.
+
 To run a sweep:
-1. Define the sweep configuration
-Specify the hyperparameters to search, the optimization strategy, and the metric to optimize. You can define this in a Python dictionary or a YAML file.
-2. Initialize the sweep
-```python
-sweep_id = wandb.sweep(sweep_config)
-```
-3. Run the sweep agent
-```python
-wandb.agent(sweep_id, function=train)
-```
+
+1. Define the sweep configuration. Specify the hyperparameters to search, the optimization strategy, and the metric to optimize. You can define this in a Python dictionary or a YAML file.
+
+2. Initialize the sweep.
+
+   ```python
+   sweep_id = wandb.sweep(sweep_config)
+
+3. Run the sweep agent.
+
+   wandb.agent(sweep_id, function=train)
+
 Each sweep run is tracked automatically, making it easy to compare metrics and identify the best-performing configuration.
 
 For a complete example, see the [Colab notebook demonstrating hyperparameter optimization using W&B Sweeps](https://wandb.me/sweeps-colab).
